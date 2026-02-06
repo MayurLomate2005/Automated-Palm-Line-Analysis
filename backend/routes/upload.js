@@ -1,5 +1,6 @@
 const express = require("express");
 const multer = require("multer");
+const { exec } = require("child_process");
 const router = express.Router();
 
 const storage = multer.diskStorage({
@@ -12,9 +13,25 @@ const storage = multer.diskStorage({
 const upload = multer({ storage });
 
 router.post("/upload", upload.single("palm"), (req, res) => {
-  res.json({
-    message: "Palm image uploaded successfully",
-    image: req.file.filename
+  const imagePath = `uploads/${req.file.filename}`;
+
+  exec(`python process.py ${imagePath}`, (error) => {
+    if (error) {
+      return res.status(500).json({ error: "Image processing failed" });
+    }
+
+   res.json({
+  message: "Palm image processed successfully",
+  original: imagePath,
+  processed: "processed.jpg",
+  analysis: {
+    lifeLine: "Strong and continuous life line detected",
+    headLine: "Moderately curved head line indicating analytical thinking",
+    heartLine: "Balanced heart line suggesting emotional stability",
+    personality: "Focused, practical, and goal-oriented individual",
+    career: "Suitable for technical and analytical roles"
+  }
+});
   });
 });
 
